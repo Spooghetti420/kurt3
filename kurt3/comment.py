@@ -15,7 +15,64 @@ class Comment(IDObject):
         self.__height = values["height"]
         self.__minimized = values["minimized"]
         self.__text = values["text"]
+
+    @property
+    def block_id(self) -> str:
+        """
+        The ID of the block that this comment refers to.
+        """
+        return self.__block_id
     
+    @property
+    def x(self) -> float:
+        """
+        The x-coordinate of this comment.
+        """
+        return self.__x
+
+    @property
+    def y(self) -> float:
+        """
+        The y-coordinate of this comment.
+        """
+        return self.__y
+
+    @property
+    def width(self) -> float:
+        """
+        The width of the comment box.
+        """
+        return self.__width
+
+    @property
+    def height(self) -> float:
+        """
+        The height of the comment box.
+        """
+        return self.__height
+
+    @property
+    def is_minimized(self) -> bool:
+        """
+        Whether the comment box is minimized. This shortens the comment text
+        in the visual editor down to a few characters.
+        """
+        return self.__minimized
+
+    @property
+    def text(self) -> str:
+        """
+        Return the comment's text.
+        """
+        return self.__text
+
+    @text.setter
+    def set_text(self, value):
+        if type(value) is not str:
+            raise TypeError(f"Comment must be of type string, but {value} of type {type(value)} was received.")
+
+        self.__text = value
+
     def output(self):
         return {
             "blockId": self.__block_id,

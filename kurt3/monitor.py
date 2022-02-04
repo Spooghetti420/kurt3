@@ -1,4 +1,5 @@
 from __future__ import annotations
+from re import S
 from typing import Callable
 
 from kurt3.subject import Subject
@@ -35,15 +36,15 @@ class Monitor(Subject):
         self.__visible = monitor_data["visible"]
 
     @property
-    def id(self):
+    def id(self) -> str:
         return self.__id
     
     @property
-    def mode(self):
+    def mode(self) -> str:
         return self.__mode
     
     @property
-    def opcode(self):
+    def opcode(self) -> str:
         return self.__opcode
     
     @property
@@ -51,15 +52,15 @@ class Monitor(Subject):
         return self.__params
     
     @property
-    def sprite_name(self):
+    def sprite_name(self) -> str:
         return self.__sprite_name
     
     @property
-    def value(self):
+    def value(self) -> int | float | str:
         return self.__value
     
     @property
-    def width(self):
+    def width(self) -> float:
         return self.__width
     
     @width.setter
@@ -72,7 +73,7 @@ class Monitor(Subject):
         )
 
     @property
-    def height(self):
+    def height(self) -> float:
         return self.__height
     
     @height.setter
@@ -85,7 +86,7 @@ class Monitor(Subject):
         )
     
     @property
-    def x(self):
+    def x(self) -> float:
         return self.__x
     
     @x.setter
@@ -98,7 +99,7 @@ class Monitor(Subject):
         )
 
     @property
-    def y(self):
+    def y(self) -> float:
         return self.__y
 
     @y.setter
@@ -111,11 +112,11 @@ class Monitor(Subject):
         )
     
     @property
-    def visible(self):
+    def is_visible(self) -> bool:
         return self.__visible
     
-    @visible.setter
-    def visible(self, value):
+    @is_visible.setter
+    def set_visible(self, value):
         if type(value) is bool:
             self.__visible = value
         else:

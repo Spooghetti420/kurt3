@@ -5,6 +5,9 @@ class Manager:
     pass
 
 class Subject:
+    def output(self):
+        pass
+
     def __validate_num(self, lower_bound, upper_bound, action: Callable, value, property_name) -> None:
         if type(value) in (int, float):
             if lower_bound <= value <= upper_bound:

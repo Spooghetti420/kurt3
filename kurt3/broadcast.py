@@ -11,7 +11,10 @@ class Broadcast(IDObject):
         self.__name = name
     
     @property
-    def name(self):
+    def name(self) -> str:
+        """
+        The name of the broadast.
+        """
         return self.__name
     
     def output(self):

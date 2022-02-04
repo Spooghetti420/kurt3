@@ -2,9 +2,9 @@ from __future__ import annotations
 import random
 from typing import Callable
 
-from kurt3.subject import Subject
+from kurt3.subject import Manager, Subject
 
-class IDObjectManager:
+class IDObjectManager(Manager):
     """
     This class represents the general behavior of various other managers, like a VariableManager, ListManager,
     etc., whose items are stored as key-value pairs in a dictionary rather than as a list.
@@ -31,6 +31,9 @@ class IDObjectManager:
 
 class SearchableByName(IDObjectManager):
     def by_name(self, name):
+        """
+        Get all values that correspond to a given `name`.
+        """
         return [i for i in self._items if i.name == i]
 
 class IDObject(Subject):

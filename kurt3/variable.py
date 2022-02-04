@@ -1,25 +1,31 @@
+from __future__ import annotations
 import random
-
 from kurt3.has_id import IDObject, SearchableByName
 
 class VariableManager(SearchableByName):
-    # The thing about these variables is that they're listed in a dict, where the key is an arbitrary, unique
-    # identifier for each variable. This makes them not very convenient for an object-oriented representation.
-    # Hence, we convert them into a list for internal usage.
     def __init__(self, variable_dict) -> None:
         super().__init__(variable_dict, Variable)
         # self.__variables = self.__items # Alias for code readability
 
         # self.__variables = [Variable(k, variable_dict[k]) for k in variable_dict]
     
-    def by_name(self, name):
-        return [v for v in self.__variables if v.name == name]
+    def create_variable(self, name: str, value: int | float | str) -> None:
+        """
+        Add a variable with a given `name` and `value` to the target.
+        Will check for naming conflicts before creating and raise an error if the variable already exists.
+        """
 
-    def create_variable(self, name, value):
+        # Ensure name is a string before proceeding
+        name = str(name)
+
+        # Check the stage's variables for global variables also
         for var in self.__variables:
             if var.name == name:
                 raise ValueError(f"Variable {name} already exists.")
         
+        if type(value) not in (int, float, str):
+            raise TypeError(f"Error creating variable {name}: variable value must be numerical or string-typed, but {value} of type {type(value)} was received.")
+
         self.__variables.append(Variable(
                 VariableManager.generate_id(), 
                 [name, value]
@@ -27,6 +33,9 @@ class VariableManager(SearchableByName):
         )
     
     def remove_variable(self, name):
+        """
+        Removes a variable from a target. Raises a warning if the variable does not exist.
+        """
         match = [v for v in self.__variables if v.name == name]
         if match:
             self.__variables.remove(match[0])
@@ -40,15 +49,25 @@ class Variable(IDObject):
         self.__value = values[1]
     
     @property
-    def name(self):
+    def name(self) -> str:
+        """
+        The name of the variable.
+        """
         return self.__name
     
     @property
-    def value(self):
+    def value(self) -> int | float | str:
+        """
+        The value of the variable. Either a number or a string.
+        """
+
         return self.__value
+        
 
     @value.setter
-    def value(self, new_value):
+    def value(self, new_value) -> None:
+        """Set the value of the variable. Value must be numerical or string."""
+        
         if type(new_value) in (int, float, str):
             self.__value = self.value
         else:

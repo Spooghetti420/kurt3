@@ -4,13 +4,15 @@ class ListManager(SearchableByName):
     def __init__(self, list_dict) -> None:
         super().__init__(list_dict, ScratchList)
         self.__lists = self._items # Alias for readability
-    
-    def by_name(self, name):
-        return [l for l in self.__lists if l.name == name]
 
-    def create_list(self, name, value=[]):
+    def create_list(self, name: str, value: list =[]) -> None:
+        """
+        Create a new list. Leaving the `value` field empty appends a new empty list.
+        Will check for naming conflicts before creating and raise an error if the list already exists.
+        """
+
         # Check for existence; this really needs to be moved to allow checking other targets as well.
-        for l in self.__list:
+        for l in self.__lists:
             if l.name == name:
                 raise ValueError(f"List {name} already exists.")
         
@@ -35,11 +37,6 @@ class ListManager(SearchableByName):
         else:
             raise Warning(f"Could not delete variable {name}: variable does not exist.")
 
-    # def output(self):
-    #     return {
-    #         v.id: [v.name, v.value] for v in self.__lists
-    #     }
-
 class ScratchList(IDObject):
     def __init__(self, id, values) -> None:
         super().__init__(id)
@@ -47,11 +44,18 @@ class ScratchList(IDObject):
         self.__value = values[1]
     
     @property
-    def name(self):
+    def name(self) -> str:
+        """
+        The name of the list.
+        """
+
         return self.__name
     
     @property
-    def value(self):
+    def value(self) -> list:
+        """
+        The contents of the list, represented as a Python list.
+        """
         return self.__value
 
     @value.setter
@@ -64,7 +68,7 @@ class ScratchList(IDObject):
             self.__value = self.value
 
         else:
-            raise TypeError(f"Variable must be a list of numeric or string-type values, but {new_value} of type {type(new_value)} was received.")
+            raise TypeError(f"List must be a list of numeric or string-type values, but {new_value} of type {type(new_value)} was received.")
 
     def output(self):
         return [self.__name, self.__value]

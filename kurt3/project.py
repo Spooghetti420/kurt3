@@ -6,8 +6,13 @@ from kurt3.target import TargetManager
 
 
 class Project:
+    """
+    Represents a Scratch project's `project.json` file. Allows access to all
+    of the project's inherent structural data, such as sprites, and their
+    costumes, sounds, scripts, etc.
+    """
 
-    def __init__(self, json_data):
+    def __init__(self, json_data: str) -> None:
         self.__json = json_data
         parsed_json: dict = json.loads(json_data)
         
@@ -15,8 +20,17 @@ class Project:
         self.monitors = MonitorManager(parsed_json["monitors"])
         self.extensions = ExtensionManager(parsed_json["extensions"])
         self.metadata = MetaDataManager(parsed_json["meta"])
+    
+    @property
+    def stage(self):
+        return self.targets.get_stage()
 
-    def output(self):
+    def output(self) -> dict:
+        """ Returns a new project.json-compatible output dictionary from the project data.
+            This contains the properties of a Scratch project, namely `targets`, `monitors`,
+            `extensions`, and `meta`.
+        """
+
         return {
             "targets": self.targets.output(),
             "monitors": self.monitors.output(),
