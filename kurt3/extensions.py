@@ -58,7 +58,7 @@ class ExtensionManager(Manager):
 
         if ext in EXTENSIONS and EXTENSIONS[ext] in self.__extensions:
             self.__extensions.remove(EXTENSIONS[ext])
-        elif ext in EXTENSIONS.values() and EXTENSIONS[ext] in self.__extensions:
+        elif ext in EXTENSIONS.values() and ext in self.__extensions:
             self.__extensions.remove(ext)
         else:
             raise Warning(f"Warning: attempted to remove extension {ext}; extension was not already in the project.")

@@ -1,5 +1,5 @@
 from __future__ import annotations
-from kurt3.has_id import IDObject, IDObjectManager
+from kurt3.subject import IDObject, IDObjectManager
 
 
 class BlockManager(IDObjectManager):
@@ -126,7 +126,7 @@ class TopLevelBlock(Block):
 
     @x.setter
     def x(self, value):
-        self.__validate_num(
+        self._validate_num(
             -2000,
             2000,
             lambda: setattr(self, "__x", value),
@@ -140,7 +140,7 @@ class TopLevelBlock(Block):
 
     @y.setter
     def y(self, value):
-        self.__validate_num(
+        self._validate_num(
             -2000,
             2000,
             lambda: setattr(self, "__y", value),

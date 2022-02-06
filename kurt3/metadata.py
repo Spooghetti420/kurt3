@@ -1,4 +1,4 @@
-class MetaDataManager:
+class MetadataManager:
     def __init__(self, meta_json) -> None:
         """
         A class to manage project metadata. There are only three properties,
@@ -34,7 +34,7 @@ class MetaDataManager:
         return self.__user_agent
     
     @user_agent.setter
-    def set_user_agent(self, value):
+    def user_agent(self, value):
         if type(value) is not str:
             raise TypeError(f"User agent must be a string, but {value} of type {type(value)} was received.")
 

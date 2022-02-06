@@ -5,6 +5,7 @@ from kurt3.comment import CommentManager
 from kurt3.costume import CostumeManager
 from kurt3.lists import ListManager
 from kurt3.sound import SoundManager
+from kurt3.subject import HasXY
 from kurt3.variable import VariableManager
 
 
@@ -216,7 +217,7 @@ class Stage(Target):
                 "textToSpeechLanguage": self.__tts_language
             }
 
-class Sprite(Target):
+class Sprite(Target, HasXY):
     """
     Represents a sprite within the project. As it is a dynamic element, it also has
     attributes such as `x` and `y`, `visible`, `size`, `direction`, `draggable`, and `rotation_style`.
@@ -224,8 +225,8 @@ class Sprite(Target):
     def __init__(self, target_dict) -> None:
         super().__init__(target_dict)
         self.__visible = target_dict["visible"]
-        self.__x = target_dict["x"]
-        self.__y = target_dict["y"]
+        self._x = target_dict["x"]
+        self._y = target_dict["y"]
         self.__size = target_dict["size"]
         self.__direction = target_dict["direction"]
         self.__draggable = target_dict["draggable"]
@@ -238,20 +239,6 @@ class Sprite(Target):
         as well as the "hide" and "show" blocks.
         """
         return self.__visible
-    
-    @property
-    def x(self) -> float:
-        """
-        The x-coordinate on the Stage of the sprite. 
-        """
-        return self.__x
-    
-    @property
-    def y(self) -> float:
-        """
-        The y-coordinate on the Stage of the sprite.
-        """
-        return self.__y
     
     @property
     def size(self):
@@ -281,8 +268,8 @@ class Sprite(Target):
     def output(self) -> dict:
         return super().output() | {
                 "visible": self.__visible,
-                "x": self.__x,
-                "y": self.__y,
+                "x": self._x,
+                "y": self._y,
                 "size": self.__size,
                 "direction": self.__direction,
                 "draggable": self.__draggable,

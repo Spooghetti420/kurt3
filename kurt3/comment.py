@@ -1,4 +1,4 @@
-from kurt3.has_id import IDObject, IDObjectManager
+from kurt3.subject import IDObject, IDObjectManager
 
 
 class CommentManager(IDObjectManager):

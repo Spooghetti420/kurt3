@@ -1,6 +1,5 @@
 from __future__ import annotations
-import random
-from kurt3.has_id import IDObject, SearchableByName
+from kurt3.subject import IDObject, SearchableByName
 
 class VariableManager(SearchableByName):
     def __init__(self, variable_dict) -> None:

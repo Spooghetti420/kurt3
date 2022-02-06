@@ -1,4 +1,4 @@
-from kurt3.has_id import IDObject, SearchableByName
+from kurt3.subject import IDObject, SearchableByName
 
 class ListManager(SearchableByName):
     def __init__(self, list_dict) -> None:
