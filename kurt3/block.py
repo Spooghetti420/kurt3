@@ -1,30 +1,48 @@
 from __future__ import annotations
+from kurt3.comment import Comment
 from kurt3.subject import IDObject, IDObjectManager
 
 
 class BlockManager(IDObjectManager):
     def __init__(self, block_dict) -> None:
-        super().__init__(block_dict, Block.create_block)
+        super().__init__(BlockManager.create_block, block_dict)
 
-class Block(IDObject):
-    def __init__(self, id, values) -> None:
-        super().__init__(id)
-        self.__opcode = values["opcode"]
-        self.__next = values["next"]
-        self.__parent = values["parent"]
-        self.__inputs = InputManager(values["inputs"])
-        self.__fields = values["fields"]
-        self.__shadow = values["shadow"]
-        self.__top_level = values["topLevel"]
-        if "comment" in values:
-            self.__comment = values["comment"]
+    def add_block(self, block: Block):
+        self._items.append(block)
 
     @staticmethod
-    def create_block(id, values):
-        if values["topLevel"] is True:
-            return TopLevelBlock(id, values)
+    def create_block(id, block_dict):
+        # Avoid using keyword as argument
+        block_dict["_next"] = block_dict["next"]
+        del block_dict["next"]
+
+        if block_dict["topLevel"] is True:
+            return TopLevelBlock(id, **block_dict)
         else:
-            return Block(id, values)
+            return Block(id, **block_dict)
+
+class Block(IDObject):
+    def __init__(self,
+        id = None,
+        opcode = None,
+        _next = None,
+        parent = None,
+        inputs = {},
+        fields = {},
+        shadow = False,
+        topLevel = True,
+        comment = None
+    ) -> None:
+        super().__init__(id)
+        self.__opcode = opcode
+        self._next = _next
+        self._parent = parent
+        self.__inputs = InputManager(inputs)
+        self.__fields = FieldsManager(fields)
+        self.__shadow = shadow
+        self.__top_level = topLevel
+        if comment:
+            self.__comment = comment
     
     @property
     def opcode(self) -> str:
@@ -82,29 +100,29 @@ class Block(IDObject):
         """
         Replace this block's "next" block with another, deleting any blocks attached to it previously.
         """
-        if self.__next is not None:
+        if self._next is not None:
             if type(next) is Block:
                 next.remove_next()
-                self.__next = next.__id
+                self._next = next.__id
             elif type(next) is str:
                 # maybe check that this variable exists
                 # also need to remove "next" values from block
-                self.__next = next
+                self._next = next
         else:
             raise KeyError("Error setting block's child block: block already has a next block.")
 
     def remove_next(self) -> None:
-        if type(self.__next) is not None:
+        if type(self._next) is not None:
             self.next.remove_next()
             self.next = None
 
     def output(self) -> dict:
         default = {
             "opcode": self.__opcode,
-            "next": self.__next,
-            "parent": self.__parent,
+            "next": self._next,
+            "parent": self._parent,
             "inputs": self.__inputs.output(),
-            "fields": self.__fields,
+            "fields": self.__fields.output(),
             "shadow": self.__shadow,
             "topLevel": self.__top_level,
         }
@@ -115,10 +133,15 @@ class Block(IDObject):
             return default
 
 class TopLevelBlock(Block):
-    def __init__(self, id, values) -> None:
-        super().__init__(id, values)
-        self.__x = values["x"]
-        self.__y = values["y"]
+    def __init__(self,
+        id = None,
+        x = 0,
+        y = 0,
+        **kwargs
+    ) -> None:
+        super().__init__(id, **kwargs)
+        self.__x = x
+        self.__y = y
 
     @property
     def x(self):
@@ -155,8 +178,8 @@ class TopLevelBlock(Block):
         }
 
 class InputManager(IDObjectManager):
-    def __init__(self, input_dict) -> None:
-        super().__init__(input_dict, BlockInput)
+    def __init__(self, input_dict: dict) -> None:
+        super().__init__(BlockInput, input_dict)
 
 class BlockInput(IDObject):
     def __init__(self, id, value) -> None:
@@ -164,5 +187,17 @@ class BlockInput(IDObject):
         self.__value = value
     
     # Idk what else to add here
+    def output(self):
+        return self.__value
+
+class FieldsManager(IDObjectManager):
+    def __init__(self, input_dict) -> None:
+        super().__init__(BlockFields, input_dict)
+
+class BlockFields(IDObject):
+    def __init__(self, id, value) -> None:
+        super().__init__(id)
+        self.__value = value
+    
     def output(self):
         return self.__value

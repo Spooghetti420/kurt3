@@ -1,8 +1,8 @@
-from kurt3.subject import IDObject, SearchableByName
+from kurt3.subject import IDObject, Searchable
 
-class ListManager(SearchableByName):
+class ListManager(Searchable):
     def __init__(self, list_dict) -> None:
-        super().__init__(list_dict, ScratchList)
+        super().__init__(ScratchList, list_dict)
         self.__lists = self._items # Alias for readability
 
     def create_list(self, name: str, value: list =[]) -> None:

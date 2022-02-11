@@ -1,5 +1,5 @@
 from __future__ import annotations
-from kurt3.block import BlockManager
+from kurt3.block import Block, BlockManager
 from kurt3.broadcast import BroadcastManager
 from kurt3.comment import CommentManager
 from kurt3.costume import CostumeManager
@@ -14,14 +14,37 @@ class TargetManager:
     Represents the list of all "targets" that belong to the project. A "target" is a general term
     for either the `Stage` or a `Sprite`.
     """
-    def __init__(self, target_list) -> None:
-        self.__targets: list[Target] = [Target.create_target(t) for t in target_list]
+    def __init__(self, target_list, project=None) -> None:
+        self.__targets: list[Target] = [TargetManager.create_target(t) for t in target_list]
+        for t in self.__targets:
+            t._project = project
+
+    @staticmethod
+    def create_target(target_dict: dict) -> Stage | Sprite:
+        """
+        Creates either a `Stage` or a `Sprite` object, depending on value of the
+        `isStage` attribute.
+        """
+
+        if target_dict["isStage"]:
+            return Stage(**target_dict)
+        else:
+            return Sprite(**target_dict)
     
     def get_stage(self):
         try:
             return [t for t in self.__targets if t.is_stage][0]
         except IndexError:
             raise NameError("Stage object does not exist.")
+
+    def get_sprite_by_name(self, name) -> Target:
+        try:
+            return [t for t in self.__targets if t.name == name and not t.is_stage][0]
+        except:
+            raise NameError(f"The sprite with name {name} does not exist.")
+
+    def as_list(self):
+        return self.__targets
     
     def output(self):
         return [t.output() for t in self.__targets]
@@ -31,19 +54,36 @@ class Target:
     Represents a single "target", either a `Stage` or a `Sprite`. As a base class, this is not sufficient
     to represent either, as `Stage`s and `Sprite`s also both have unique properties. 
     """
-    def __init__(self, target_dict) -> None:
-        self.__is_stage = target_dict["isStage"]
-        self.__name = target_dict["name"]
-        self.__variables = VariableManager(target_dict["variables"])
-        self.__lists = ListManager(target_dict["lists"])
-        self.__broadcasts = BroadcastManager(target_dict["broadcasts"]) # There won't be any for a sprite, i.e. {}
-        self.__blocks = BlockManager(target_dict["blocks"])
-        self._comments = CommentManager(target_dict["comments"])
-        self.__current_costume = target_dict["currentCostume"]
-        self.__costumes = CostumeManager(target_dict["costumes"])
-        self.__sounds = SoundManager(target_dict["sounds"])
-        self.__layer_order = target_dict["layerOrder"]
-        self.__volume = target_dict["volume"]
+    def __init__(self,
+        isStage = False,
+        name = None,
+        variables = {},
+        lists = {},
+        broadcasts = {},
+        blocks = {},
+        comments = {},
+        currentCostume = 1,
+        costumes = [],
+        sounds = [],
+        layerOrder = None,
+        volume = 100
+    ) -> None:
+        self.__is_stage = isStage
+        self.__name = name
+        if name is None:
+            raise Warning("Name was not assigned to target, saving cannot commence unless a unique name is chosen.")
+        self.__variables = VariableManager(variables)
+        self.__lists = ListManager(lists)
+        self.__broadcasts = BroadcastManager(broadcasts)
+        self.__blocks = BlockManager(blocks)
+        self._comments = CommentManager(comments)
+        self.__current_costume = currentCostume
+        self.__costumes = CostumeManager(costumes)
+        self.__sounds = SoundManager(sounds)
+        self.__layer_order = layerOrder
+        if layerOrder is None:
+            raise Warning("Layer order was not assigned to target, saving cannot commence until a unique layer is selected.")
+        self.__volume = volume
 
     @property
     def is_stage(self):
@@ -68,6 +108,13 @@ class Target:
         The variables local to this target. Note that variables of the Stage are considered global variables.
         """
         return self.__variables
+    
+    @property
+    def lists(self) -> ListManager:
+        """
+        The lists local to this target. Note that variables of the Stage are considered global.
+        """
+        return self.__lists
     
     @property
     def broadcasts(self) -> BroadcastManager:
@@ -136,7 +183,10 @@ class Target:
         This target's volume. This applies to music blocks and sounds.
         """
         return self.__volume
-    
+
+    def add_block(self, block: Block) -> None:
+        block._id = self._project.generate_id(20)
+        self.__blocks.add_block(block)
 
     def output(self) -> dict:
         return {
@@ -154,30 +204,24 @@ class Target:
             "layerOrder": self.__layer_order,
         }
 
-    @staticmethod
-    def create_target(target_dict: dict) -> Stage | Sprite:
-        """
-        Creates either a `Stage` or a `Sprite` object, depending on value of the
-        `isStage` attribute.
-        """
-
-        if target_dict["isStage"]:
-            return Stage(target_dict)
-        else:
-            return Sprite(target_dict)
-
 
 class Stage(Target):
     """
     Represents the Stage of a project. Beyond typical `Target` properties, a `Stage`
     also has `tempo`, `video_transparency`, `video_state`, and `tts_language`.
     """
-    def __init__(self, target_dict) -> None:
-        super().__init__(target_dict)
-        self.__tempo = target_dict["tempo"]
-        self.__video_transparency = target_dict["videoTransparency"]
-        self.__video_state = target_dict["videoState"]
-        self.__tts_language = target_dict["textToSpeechLanguage"]
+    def __init__(self,
+        tempo = 60,
+        videoTransparency = 50,
+        videoState = "on",
+        textToSpeechLanguage = "en",
+        **kwargs,
+    ) -> None:
+        super().__init__(**kwargs)
+        self.__tempo = tempo
+        self.__video_transparency = videoTransparency
+        self.__video_state = videoState
+        self.__tts_language = textToSpeechLanguage
 
     @property
     def tempo(self) -> int:
@@ -222,15 +266,24 @@ class Sprite(Target, HasXY):
     Represents a sprite within the project. As it is a dynamic element, it also has
     attributes such as `x` and `y`, `visible`, `size`, `direction`, `draggable`, and `rotation_style`.
     """
-    def __init__(self, target_dict) -> None:
-        super().__init__(target_dict)
-        self.__visible = target_dict["visible"]
-        self._x = target_dict["x"]
-        self._y = target_dict["y"]
-        self.__size = target_dict["size"]
-        self.__direction = target_dict["direction"]
-        self.__draggable = target_dict["draggable"]
-        self.__rotation_style = target_dict["rotationStyle"]
+    def __init__(self,
+        visible = True,
+        x = 0,
+        y = 0,
+        size = 100,
+        direction = 90,
+        draggable = False,
+        rotationStyle = "all around",
+        **kwargs
+    ) -> None:
+        super().__init__(**kwargs)
+        self.__visible = visible
+        self._x = x
+        self._y = y
+        self.__size = size
+        self.__direction = direction
+        self.__draggable = draggable
+        self.__rotation_style = rotationStyle
     
     @property
     def is_visible(self) -> bool:

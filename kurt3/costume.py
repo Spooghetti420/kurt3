@@ -1,4 +1,9 @@
+from __future__ import annotations
+from hashlib import md5
+import os
+import shutil
 from kurt3.asset import Asset
+# from kurt3.target import Sprite
 
 
 class CostumeManager:
@@ -9,10 +14,28 @@ class CostumeManager:
     def costumes(self):
         return self.__costumes
 
+    def add(self, file_path, name: str):
+        md5_hash = ""
+        with open(file_path, mode="rb") as f:
+            md5_hash = md5(f.read()).hexdigest()
+
+        extension = os.path.splitext(file_path)[1]
+
+        self.__costumes.append(Costume.create_costume(
+            {
+                "assetId": md5_hash,
+                "name": name,
+                "md5ext": md5_hash + extension,
+                "dataFormat": extension[1:],
+                "rotationCenterX": 0,
+                "rotationCenterY": 0,
+                "bitmapResolution": 1
+            }
+        ))
+
     def output(self):
         return [c.output() for c in self.__costumes]
     
-# TODO: make this class inherit from a shared "asset" class alongside Sound
 class Costume(Asset):
     def __init__(self, values: dict) -> None:
         super().__init__(values)
@@ -55,3 +78,10 @@ class BitmapCostume(Costume):
         return super().output() | {
             "bitmapResolution": self.__bitmap_resolution
         }
+
+class AddableCostume:
+    def __init__(self, file_path) -> None:
+        self.__file_path = file_path
+    
+    def to(self, sprite: Sprite):
+        sprite.costumes.add()

@@ -28,14 +28,8 @@ class IDObjectManager(Manager):
     way, so this part of the class can be "factored out" of all of them, allowing them all to inherit from it here.
     """
 
-    def __init__(self, id_dict, subtype: type[IDObject] | Callable) -> None:
-        self._items = [subtype(key, id_dict[key]) for key in id_dict]
-
-    @staticmethod
-    def generate_id(l=20):
-        valid_characters = "!#$%()*+,-./0123456789:;=?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~"
-        id = "".join([random.choice(valid_characters) for i in range(l)])
-        return id
+    def __init__(self, subtype: type[IDObject] | Callable, dictionary: dict) -> None:
+        self._items = [subtype(key, dictionary[key]) for key in dictionary]
 
     def output(self):
         # With this, subtypes (e.g. variables, lists, etc.) will only need to "output" their values;
@@ -44,12 +38,18 @@ class IDObjectManager(Manager):
             i._id: i.output() for i in self._items
         }
 
-class SearchableByName(IDObjectManager):
-    def by_name(self, name):
+class Searchable(IDObjectManager):
+    def by_name(self, name) -> list[IDObject]:
         """
-        Get all values that correspond to a given `name`.
+        Get the value that corresponds to a given `name`.
         """
-        return [i for i in self._items if i.name == i]
+        return [i for i in self._items if i.name == name]
+
+    def by_id(self, id):
+        """
+        Get the value that corresponds to a given `id`.
+        """
+        return [i for i in self._items if i.id == id][0]
 
 class HasXY(Subject):
     @property

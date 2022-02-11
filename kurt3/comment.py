@@ -3,7 +3,7 @@ from kurt3.subject import IDObject, IDObjectManager
 
 class CommentManager(IDObjectManager):
     def __init__(self, comment_dict) -> None:
-        super().__init__(comment_dict, Comment)
+        super().__init__(Comment, comment_dict)
 
 class Comment(IDObject):
     def __init__(self, id, values) -> None:

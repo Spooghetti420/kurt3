@@ -1,14 +1,16 @@
 from __future__ import annotations
 import os
+import random
+import shutil
 import traceback
 import zipfile
 import tempfile
 import json as JSON
-from shutil import rmtree
 from kurt3.extensions import ExtensionManager
 from kurt3.metadata import MetadataManager
 from kurt3.monitor import MonitorManager
-from kurt3.target import TargetManager
+from kurt3.target import Sprite, Target, TargetManager
+from kurt3.variable import Variable
 
 class Project:
     def __init__(self, file_path: str) -> None:
@@ -24,7 +26,7 @@ class Project:
         with zipfile.ZipFile(self.__filepath, "r") as zip_ref:
             zip_ref.extractall(self.__tmp_dir_name)
         
-        self.__json = ProjectJSON(os.path.join(self.__tmp_dir_name, "project.json"))
+        self.__json = ProjectJSON(os.path.join(self.__tmp_dir_name, "project.json"), self)
         return self
 
     
@@ -33,8 +35,23 @@ class Project:
             traceback.print_exception(exception_type, exception_value, tb)
 
         # Removes the temporary working directory once the project is finished with
-        rmtree(self.__tmp_dir_name)
+        shutil.rmtree(self.__tmp_dir_name)
         return True
+
+    def generate_id(self, l = 20) -> str:
+        valid_characters = "!#$%()*+,-./0123456789:;=?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~"
+        existing_ids = self._get_ids()
+        # Generate IDs until a unique one is found (very likely the first attempt) 
+        while (uuid := "".join([random.choice(valid_characters) for i in range(l)])) in existing_ids:
+            pass
+        return uuid
+
+    def _get_ids(self) -> list[str]:
+        ids = set()
+        for t in self.__json.targets.as_list():
+            for m in t.blocks._items + t.broadcasts._items + t.variables._items + t.lists._items:
+                ids.add(m._id)
+        return ids
 
     @property
     def targets(self):
@@ -51,6 +68,42 @@ class Project:
     @property
     def metadata(self):
         return self.__json.metadata
+
+    @property
+    def stage(self):
+        return self.targets.get_stage()
+
+    def get_variables_by_name(self, name) -> list[Variable]:
+        """
+        Get any variables that correspond to the given name.
+        Any global variable will only be returned as one instance,
+        belonging to the Stage; local variables mean that the
+        return value is a list, where multiple duplicate local variables
+        can each appear in the list.
+        """
+
+        output = []
+        for target in self.__json.targets.as_list():
+            if (vars := target.variables.by_name(name)):
+                output.extend(vars)
+        return output
+
+    def get_sprite_by_name(self, name) -> Sprite:
+        """
+        Returns the sprite, if any, that corresponds to the given
+        `name`, else raises an error.
+        """
+        return self.__json.targets.get_sprite_by_name(name)
+
+    def add_costume(self, file_path: str, name: str, target: Target):
+        if type(file_path) is not str:
+            raise TypeError(f"File output name must be a string, but {file_path} of type {type(file_path)} was received.")
+        
+        directory_path = os.path.split(file_path)[0] 
+        if directory_path != "" and not os.path.exists(directory_path):
+            raise FileNotFoundError(f"Directory {directory_path} where the project was saved could not be found.")
+
+        target.costumes.add(file_path)
         
     def save(self, file_path: str = "project.sb3"):
         """
@@ -79,7 +132,7 @@ class ProjectJSON:
     costumes, sounds, scripts, etc.
     """
 
-    def __init__(self, project_json_file: str) -> None:
+    def __init__(self, project_json_file: str, project) -> None:
         """
         Initialize a project using the its filename.
         """
@@ -89,7 +142,7 @@ class ProjectJSON:
 
         parsed_json: dict = JSON.loads(self.__json)
         
-        self.__targets = TargetManager(parsed_json["targets"])
+        self.__targets = TargetManager(parsed_json["targets"], project)
         self.__monitors = MonitorManager(parsed_json["monitors"])
         self.__extensions = ExtensionManager(parsed_json["extensions"])
         self.__metadata = MetadataManager(parsed_json["meta"])

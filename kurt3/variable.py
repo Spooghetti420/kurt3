@@ -1,12 +1,9 @@
 from __future__ import annotations
-from kurt3.subject import IDObject, SearchableByName
+from kurt3.subject import IDObject, Searchable
 
-class VariableManager(SearchableByName):
+class VariableManager(Searchable):
     def __init__(self, variable_dict) -> None:
-        super().__init__(variable_dict, Variable)
-        # self.__variables = self.__items # Alias for code readability
-
-        # self.__variables = [Variable(k, variable_dict[k]) for k in variable_dict]
+        super().__init__(Variable, variable_dict)
     
     def create_variable(self, name: str, value: int | float | str) -> None:
         """
@@ -42,8 +39,8 @@ class VariableManager(SearchableByName):
             raise Warning(f"Could not delete variable {name}: variable does not exist.")
 
 class Variable(IDObject):
-    def __init__(self, id, values: list) -> None:
-        super().__init__(id)
+    def __init__(self, id_, values: list) -> None:
+        super().__init__(id_)
         self.__name = values[0]
         self.__value = values[1]
     

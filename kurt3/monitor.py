@@ -4,7 +4,15 @@ from kurt3.subject import HasWidthHeight, HasXY, Subject
 
 class MonitorManager:
     def __init__(self, monitor_list) -> None:
-        self.__monitors = [Monitor.create_monitor(m) for m in monitor_list]
+        self.__monitors = [MonitorManager.create_monitor(m) for m in monitor_list]
+            
+    @staticmethod
+    def create_monitor(monitor_dict: dict) -> Monitor | VariableMonitor:
+        """Decides whether to create a base Monitor or a VariableMonitor based on the input object."""
+        if "sliderMin" in monitor_dict:
+            return VariableMonitor(**monitor_dict)
+        else:
+            return Monitor(**monitor_dict)
     
     @property
     def monitors(self) -> list[Monitor]:
@@ -36,18 +44,30 @@ class Monitor(HasXY, HasWidthHeight):
     to encode.
     """
 
-    def __init__(self, monitor_data) -> None:
-        self.__id = monitor_data["id"] # Variable ID that the monitor is displaying
-        self.__mode = monitor_data["mode"] # "list", "default", etc., specifies what kind of monitor this is
-        self.__opcode = monitor_data["opcode"] # Either equal to "data_variable" or "data_listcontents"
-        self.__params = monitor_data["params"]
-        self.__sprite_name = monitor_data["spriteName"] # null, or string if the monitor is local to a sprite
-        self.__value = monitor_data["value"]
-        self._width = monitor_data["width"]
-        self._height = monitor_data["height"]
-        self._x = monitor_data["x"]
-        self._y = monitor_data["y"]
-        self.__visible = monitor_data["visible"]
+    def __init__(self,
+        id = None,
+        mode = None,
+        opcode = None,
+        params = None,
+        spriteName = None,
+        value = None,
+        width = 100,
+        height = 100,
+        x = 0,
+        y = 0,
+        visible = True    
+    ) -> None:
+        self.__id = id # Variable ID that the monitor is displaying
+        self.__mode = mode # "list", "default", etc., specifies what kind of monitor this is
+        self.__opcode = opcode # Either equal to "data_variable" or "data_listcontents"
+        self.__params = params
+        self.__sprite_name = spriteName # null, or string if the monitor is local to a sprite
+        self.__value = value
+        self._width = width
+        self._height = height
+        self._x = x
+        self._y = y
+        self.__visible = visible
 
     @property
     def id(self) -> str:
@@ -136,21 +156,18 @@ class Monitor(HasXY, HasWidthHeight):
             "y": self._y,
             "visible": self.__visible,
         }
-    
-    @staticmethod
-    def create_monitor(monitor_dict: dict) -> Monitor | VariableMonitor:
-        """Decides whether to create a base Monitor or a VariableMonitor based on the input object."""
-        if "sliderMin" in monitor_dict:
-            return VariableMonitor(monitor_dict)
-        else:
-            return Monitor(monitor_dict)
 
 class VariableMonitor(Monitor):
-    def __init__(self, monitor_data) -> None:
-        super().__init__(monitor_data)
-        self.__slider_min = monitor_data["sliderMin"]
-        self.__slider_max = monitor_data["sliderMax"]
-        self.__is_discrete = monitor_data["isDiscrete"]
+    def __init__(self,
+        sliderMin = 1,
+        sliderMax = 100,
+        isDiscrete = False,
+        **kwargs
+    ) -> None:
+        super().__init__(**kwargs)
+        self.__slider_min = sliderMin
+        self.__slider_max = sliderMax
+        self.__is_discrete = isDiscrete
 
     @property
     def slider_min(self) -> float | int:
