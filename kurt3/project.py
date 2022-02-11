@@ -1,4 +1,5 @@
 from __future__ import annotations
+import hashlib
 import os
 import random
 import shutil
@@ -22,10 +23,12 @@ class Project:
         self.__tmp = tempfile.gettempdir()
         self.__tmp_dir_name = os.path.join(self.__tmp, self.__filename)
 
+        self.__assets = dict() # List of newly added assets to avoid re-hashing files
+
     def __enter__(self) -> Project:
         with zipfile.ZipFile(self.__filepath, "r") as zip_ref:
             zip_ref.extractall(self.__tmp_dir_name)
-        
+
         self.__json = ProjectJSON(os.path.join(self.__tmp_dir_name, "project.json"), self)
         return self
 
@@ -37,6 +40,16 @@ class Project:
         # Removes the temporary working directory once the project is finished with
         shutil.rmtree(self.__tmp_dir_name)
         return True
+
+    def _add_asset(self, file_path) -> None:
+        self._check_file_path(file_path)
+        
+        if file_path in self.__assets:
+            return
+
+        with open(file_path, mode="rb") as asset:
+            md5_hash = hashlib.md5(asset.read()).hexdigest()
+            self.__assets[file_path] = md5_hash + os.path.splitext(file_path)[1]
 
     def generate_id(self, l = 20) -> str:
         valid_characters = "!#$%()*+,-./0123456789:;=?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~"
@@ -52,6 +65,15 @@ class Project:
             for m in t.blocks._items + t.broadcasts._items + t.variables._items + t.lists._items:
                 ids.add(m._id)
         return ids
+
+    @staticmethod
+    def _check_file_path(file_path) -> None:
+        if type(file_path) is not str:
+            raise TypeError(f"File name must be a string, but {file_path} of type {type(file_path)} was received.")
+        
+        directory_path = os.path.split(file_path)[0] 
+        if directory_path != "" and not os.path.exists(directory_path):
+            raise FileNotFoundError(f"Directory {directory_path} could not be found.")
 
     @property
     def targets(self):
@@ -95,15 +117,15 @@ class Project:
         """
         return self.__json.targets.get_sprite_by_name(name)
 
-    def add_costume(self, file_path: str, name: str, target: Target):
-        if type(file_path) is not str:
-            raise TypeError(f"File output name must be a string, but {file_path} of type {type(file_path)} was received.")
+    # def add_costume(self, file_path: str, name: str, target: Target):
+    #     if type(file_path) is not str:
+    #         raise TypeError(f"File output name must be a string, but {file_path} of type {type(file_path)} was received.")
         
-        directory_path = os.path.split(file_path)[0] 
-        if directory_path != "" and not os.path.exists(directory_path):
-            raise FileNotFoundError(f"Directory {directory_path} where the project was saved could not be found.")
+    #     directory_path = os.path.split(file_path)[0] 
+    #     if directory_path != "" and not os.path.exists(directory_path):
+    #         raise FileNotFoundError(f"Directory {directory_path} where the project was saved could not be found.")
 
-        target.costumes.add(file_path)
+    #     target.costumes.add(file_path)
         
     def save(self, file_path: str = "project.sb3"):
         """
@@ -111,12 +133,10 @@ class Project:
         The default filename is `project.sb3`.
         """
 
-        if type(file_path) is not str:
-            raise TypeError(f"File output name must be a string, but {file_path} of type {type(file_path)} was received.")
-        
-        directory_path = os.path.split(file_path)[0] 
-        if directory_path != "" and not os.path.exists(directory_path):
-            raise FileNotFoundError(f"Directory {directory_path} where the project was saved could not be found.")
+        self._check_file_path(file_path)
+
+        for file, md5_name in self.__assets.items():
+            shutil.copy(file, f"{os.path.join(self.__tmp_dir_name, md5_name)}")
 
         with open(os.path.join(self.__tmp_dir_name, "project.json"), mode="w") as project_file:
             project_file.write(JSON.dumps(self.__json.output()))

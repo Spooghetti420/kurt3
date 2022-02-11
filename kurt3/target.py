@@ -184,9 +184,11 @@ class Target:
         """
         return self.__volume
 
-    def add_block(self, block: Block) -> None:
-        block._id = self._project.generate_id(20)
+    def add_block(self, block: Block) -> Block:
+        if block._id is None:
+            block._id = self._project.generate_id(20)
         self.__blocks.add_block(block)
+        return block
 
     def output(self) -> dict:
         return {

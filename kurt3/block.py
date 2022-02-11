@@ -132,6 +132,10 @@ class Block(IDObject):
         except AttributeError:
             return default
 
+    def add_block(self, block):
+        if self.next is None:
+            self.set_next(block)
+
 class TopLevelBlock(Block):
     def __init__(self,
         id = None,
