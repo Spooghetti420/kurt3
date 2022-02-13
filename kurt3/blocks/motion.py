@@ -70,7 +70,7 @@ class GlideSecsToXY(Block):
             )
 
 class GlideSecsToMenu(Block):
-    def __init__(self, sprite: Target, secs = 1, goto: str = "_random_") -> None:
+    def __init__(self, secs = 1, goto: str = "_random_") -> None:
         super().__init__(
             opcode = "motion_glideto",
             # inputs = {

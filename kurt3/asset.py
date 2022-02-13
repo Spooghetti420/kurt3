@@ -13,6 +13,13 @@ class Asset:
         return self.__asset_id
 
     @property
+    def name(self) -> str:
+        """
+        The name of the asset.
+        """
+        return self.__name
+
+    @property
     def md5_with_extension(self) -> str:
         """
         The md5 hash (asset ID) + the file extension of the asset's data file within the project.

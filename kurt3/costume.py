@@ -1,25 +1,29 @@
 from __future__ import annotations
 from hashlib import md5
 import os
-import shutil
+
 from kurt3.asset import Asset
-# from kurt3.target import Sprite
 
 
 class CostumeManager:
-    def __init__(self, costume_list: list[dict]) -> None:
+    def __init__(self, costume_list: list[dict], project) -> None:
         self.__costumes = [Costume.create_costume(c) for c in costume_list]
+        self._project = project
     
     @property
     def costumes(self):
         return self.__costumes
 
-    def add(self, file_path, name: str):
+    def add(self, file_path, name: str, rotation_center = (0, 0)):
         md5_hash = ""
-        with open(file_path, mode="rb") as f:
-            md5_hash = md5(f.read()).hexdigest()
-
-        extension = os.path.splitext(file_path)[1]
+        extension = ""
+        if file_path in self._project._assets:
+            md5_hash = self._project._assets[file_path]
+            extension = os.path.splitext(md5_hash)[1]
+        else:
+            with open(file_path, mode="rb") as f:
+                md5_hash = md5(f.read()).hexdigest()
+                extension = os.path.splitext(file_path)[1]
 
         self.__costumes.append(Costume.create_costume(
             {
@@ -27,8 +31,8 @@ class CostumeManager:
                 "name": name,
                 "md5ext": md5_hash + extension,
                 "dataFormat": extension[1:],
-                "rotationCenterX": 0,
-                "rotationCenterY": 0,
+                "rotationCenterX": rotation_center[0],
+                "rotationCenterY": rotation_center[1],
                 "bitmapResolution": 1
             }
         ))
@@ -78,10 +82,3 @@ class BitmapCostume(Costume):
         return super().output() | {
             "bitmapResolution": self.__bitmap_resolution
         }
-
-class AddableCostume:
-    def __init__(self, file_path) -> None:
-        self.__file_path = file_path
-    
-    def to(self, sprite: Sprite):
-        sprite.costumes.add()

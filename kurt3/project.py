@@ -23,7 +23,7 @@ class Project:
         self.__tmp = tempfile.gettempdir()
         self.__tmp_dir_name = os.path.join(self.__tmp, self.__filename)
 
-        self.__assets = dict() # List of newly added assets to avoid re-hashing files
+        self._assets = dict() # List of newly added assets to avoid re-hashing files
 
     def __enter__(self) -> Project:
         with zipfile.ZipFile(self.__filepath, "r") as zip_ref:
@@ -44,12 +44,12 @@ class Project:
     def _add_asset(self, file_path) -> None:
         self._check_file_path(file_path)
         
-        if file_path in self.__assets:
+        if file_path in self._assets:
             return
 
         with open(file_path, mode="rb") as asset:
             md5_hash = hashlib.md5(asset.read()).hexdigest()
-            self.__assets[file_path] = md5_hash + os.path.splitext(file_path)[1]
+            self._assets[file_path] = md5_hash + os.path.splitext(file_path)[1]
 
     def generate_id(self, l = 20) -> str:
         valid_characters = "!#$%()*+,-./0123456789:;=?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~"
@@ -135,7 +135,7 @@ class Project:
 
         self._check_file_path(file_path)
 
-        for file, md5_name in self.__assets.items():
+        for file, md5_name in self._assets.items():
             shutil.copy(file, f"{os.path.join(self.__tmp_dir_name, md5_name)}")
 
         with open(os.path.join(self.__tmp_dir_name, "project.json"), mode="w") as project_file:

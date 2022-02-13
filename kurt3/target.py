@@ -2,7 +2,7 @@ from __future__ import annotations
 from kurt3.block import Block, BlockManager
 from kurt3.broadcast import BroadcastManager
 from kurt3.comment import CommentManager
-from kurt3.costume import CostumeManager
+from kurt3.costume import Costume, CostumeManager
 from kurt3.lists import ListManager
 from kurt3.sound import SoundManager
 from kurt3.subject import HasXY
@@ -15,21 +15,20 @@ class TargetManager:
     for either the `Stage` or a `Sprite`.
     """
     def __init__(self, target_list, project=None) -> None:
-        self.__targets: list[Target] = [TargetManager.create_target(t) for t in target_list]
-        for t in self.__targets:
-            t._project = project
+        self.__targets: list[Target] = [TargetManager.create_target(t, project=project) for t in target_list]
 
     @staticmethod
-    def create_target(target_dict: dict) -> Stage | Sprite:
+    def create_target(target_dict: dict, project=None) -> Stage | Sprite:
         """
         Creates either a `Stage` or a `Sprite` object, depending on value of the
         `isStage` attribute.
         """
 
+        # args = target_dict | {"project": project}
         if target_dict["isStage"]:
-            return Stage(**target_dict)
+            return Stage(**target_dict, project=project)
         else:
-            return Sprite(**target_dict)
+            return Sprite(**target_dict, project=project)
     
     def get_stage(self):
         try:
@@ -66,7 +65,8 @@ class Target:
         costumes = [],
         sounds = [],
         layerOrder = None,
-        volume = 100
+        volume = 100,
+        project = None
     ) -> None:
         self.__is_stage = isStage
         self.__name = name
@@ -78,12 +78,13 @@ class Target:
         self.__blocks = BlockManager(blocks)
         self._comments = CommentManager(comments)
         self.__current_costume = currentCostume
-        self.__costumes = CostumeManager(costumes)
-        self.__sounds = SoundManager(sounds)
+        self.__costumes = CostumeManager(costumes, project)
+        self.__sounds = SoundManager(sounds, project)
         self.__layer_order = layerOrder
         if layerOrder is None:
             raise Warning("Layer order was not assigned to target, saving cannot commence until a unique layer is selected.")
         self.__volume = volume
+        self._project = project
 
     @property
     def is_stage(self):
@@ -189,6 +190,17 @@ class Target:
             block._id = self._project.generate_id(20)
         self.__blocks.add_block(block)
         return block
+
+    def add_costume(self, file_path, costume_name, rotation_center = (0, 0)):
+        # Check whether costume of this name exists already
+        if bool([c for c in self.__costumes.costumes if c.name == costume_name]):
+            raise ValueError(f"The chosen costume name ({costume_name}) already exists on this Target. Please choose a different one.")
+        self.__costumes.add(file_path, costume_name, rotation_center)
+
+    def add_sound(self, file_path, sound_name):
+        if bool([s for s in self.__sounds.sounds if s.name == sound_name]):
+            raise ValueError(f"The chosen sound name ({sound_name}) already exists on this Target. Please choose a different one.")
+        self.__sounds.add(file_path, sound_name)
 
     def output(self) -> dict:
         return {
