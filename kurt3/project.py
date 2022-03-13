@@ -23,13 +23,30 @@ class Project:
         self.__tmp = tempfile.gettempdir()
         self.__tmp_dir_name = os.path.join(self.__tmp, self.__filename)
 
+        self.__json = ""
+
+        self.__targets: TargetManager = None
+        self.__monitors: MonitorManager = None
+        self.__extensions: ExtensionManager = None
+        self.__metadata: MetadataManager = None
+
         self._assets = dict() # List of newly added assets to avoid re-hashing files
 
     def __enter__(self) -> Project:
         with zipfile.ZipFile(self.__filepath, "r") as zip_ref:
             zip_ref.extractall(self.__tmp_dir_name)
 
-        self.__json = ProjectJSON(os.path.join(self.__tmp_dir_name, "project.json"), self)
+        
+        with open(os.path.join(self.__tmp_dir_name, "project.json")) as project_json:
+            self.__json = project_json.read()
+
+        # self.__json = ProjectJSON(os.path.join(self.__tmp_dir_name, "project.json"), self)
+        parsed_json: dict = JSON.loads(self.__json)
+        
+        self.__targets = TargetManager(parsed_json["targets"], self)
+        self.__monitors = MonitorManager(parsed_json["monitors"])
+        self.__extensions = ExtensionManager(parsed_json["extensions"])
+        self.__metadata = MetadataManager(parsed_json["meta"])
         return self
 
     
@@ -77,19 +94,19 @@ class Project:
 
     @property
     def targets(self):
-        return self.__json.targets
+        return self.__targets
 
     @property
     def monitors(self):
-        return self.__json.monitors
+        return self.__monitors
 
     @property
     def extensions(self):
-        return self.__json.extensions
+        return self.__extensions
 
     @property
     def metadata(self):
-        return self.__json.metadata
+        return self.__metadata
 
     @property
     def stage(self):
@@ -105,7 +122,7 @@ class Project:
         """
 
         output = []
-        for target in self.__json.targets.as_list():
+        for target in self.__targets.as_list():
             if (vars := target.variables.by_name(name)):
                 output.extend(vars)
         return output
@@ -115,7 +132,7 @@ class Project:
         Returns the sprite, if any, that corresponds to the given
         `name`, else raises an error.
         """
-        return self.__json.targets.get_sprite_by_name(name)
+        return self.__targets.get_sprite_by_name(name)
 
     # def add_costume(self, file_path: str, name: str, target: Target):
     #     if type(file_path) is not str:
@@ -139,72 +156,17 @@ class Project:
             shutil.copy(file, f"{os.path.join(self.__tmp_dir_name, md5_name)}")
 
         with open(os.path.join(self.__tmp_dir_name, "project.json"), mode="w") as project_file:
-            project_file.write(JSON.dumps(self.__json.output()))
+            project_file.write(JSON.dumps(self.output()))
 
         with zipfile.ZipFile(file_path, "w") as zip_ref:
             for file in os.listdir(self.__tmp_dir_name):
                 zip_ref.write(os.path.join(self.__tmp_dir_name, file), file)
-
-class ProjectJSON:
-    """
-    Represents a Scratch project's `project.json` file. Allows access to all
-    of the project's inherent structural data, such as sprites, and their
-    costumes, sounds, scripts, etc.
-    """
-
-    def __init__(self, project_json_file: str, project) -> None:
-        """
-        Initialize a project using the its filename.
-        """
-        self.__json = ""
-        with open(project_json_file) as project_json:
-            self.__json = project_json.read()
-
-        parsed_json: dict = JSON.loads(self.__json)
-        
-        self.__targets = TargetManager(parsed_json["targets"], project)
-        self.__monitors = MonitorManager(parsed_json["monitors"])
-        self.__extensions = ExtensionManager(parsed_json["extensions"])
-        self.__metadata = MetadataManager(parsed_json["meta"])
-
-    @property
-    def targets(self) -> TargetManager:
-        """
-        The `Target`s that belong to this project, i.e. all sprites and the stage.
-        """
-        return self.__targets
-    
-    @property
-    def monitors(self) -> MonitorManager:
-        """
-        The variable and list monitors on display on this project.
-        """
-        return self.__monitors
-    
-    @property
-    def extensions(self) -> ExtensionManager:
-        """
-        The list of extensions enabled on this project.
-        """
-        return self.__extensions
-    
-    @property
-    def metadata(self) -> MetadataManager:
-        """
-        The metadata associated with this project.
-        """
-        return self.__metadata
-    
-    @property
-    def stage(self):
-        return self.targets.get_stage()
 
     def output(self) -> dict:
         """ Returns a new project.json-compatible output dictionary from the project data.
             This contains the properties of a Scratch project, namely `targets`, `monitors`,
             `extensions`, and `meta`.
         """
-
         return {
             "targets": self.__targets.output(),
             "monitors": self.__monitors.output(),
