@@ -43,7 +43,7 @@ class Project:
         # self.__json = ProjectJSON(os.path.join(self.__tmp_dir_name, "project.json"), self)
         parsed_json: dict = JSON.loads(self.__json)
         
-        self.__targets = TargetManager(parsed_json["targets"], self)
+        self.__targets = TargetManager(parsed_json["targets"])
         self.__monitors = MonitorManager(parsed_json["monitors"])
         self.__extensions = ExtensionManager(parsed_json["extensions"])
         self.__metadata = MetadataManager(parsed_json["meta"])

@@ -14,21 +14,20 @@ class TargetManager:
     Represents the list of all "targets" that belong to the project. A "target" is a general term
     for either the `Stage` or a `Sprite`.
     """
-    def __init__(self, target_list, project=None) -> None:
-        self.__targets: list[Target] = [TargetManager.create_target(t, project=project) for t in target_list]
+    def __init__(self, target_list) -> None:
+        self.__targets: list[Target] = [TargetManager.create_target(t) for t in target_list]
 
     @staticmethod
-    def create_target(target_dict: dict, project=None) -> Stage | Sprite:
+    def create_target(target_dict: dict) -> Stage | Sprite:
         """
         Creates either a `Stage` or a `Sprite` object, depending on value of the
         `isStage` attribute.
         """
 
-        # args = target_dict | {"project": project}
         if target_dict["isStage"]:
-            return Stage(**target_dict, project=project)
+            return Stage(**target_dict)
         else:
-            return Sprite(**target_dict, project=project)
+            return Sprite(**target_dict)
     
     def get_stage(self):
         try:
@@ -66,7 +65,6 @@ class Target:
         sounds = [],
         layerOrder = None,
         volume = 100,
-        project = None
     ) -> None:
         self.__is_stage = isStage
         self.__name = name
@@ -78,13 +76,12 @@ class Target:
         self.__blocks = BlockManager(blocks)
         self._comments = CommentManager(comments)
         self.__current_costume = currentCostume
-        self.__costumes = CostumeManager(costumes, project)
-        self.__sounds = SoundManager(sounds, project)
+        self.__costumes = CostumeManager(costumes)
+        self.__sounds = SoundManager(sounds)
         self.__layer_order = layerOrder
         if layerOrder is None:
             raise Warning("Layer order was not assigned to target, saving cannot commence until a unique layer is selected.")
         self.__volume = volume
-        self._project = project
 
     @property
     def is_stage(self):
@@ -186,9 +183,7 @@ class Target:
         return self.__volume
 
     def add_block(self, block: Block) -> Block:
-        if block._id is None:
-            block._id = self._project.generate_id(20)
-        self.__blocks.add_block(block)
+        raise NotImplementedError("Refactoring adding blocks")
         return block
 
     def add_costume(self, file_path, costume_name, rotation_center = (0, 0)):
@@ -263,7 +258,7 @@ class Stage(Target):
     def tts_language(self):
         """
         The current text-to-speech language when using the text-to-speech extension,
-        ostensibly represented using an ISO 639-1 language code, e.g. `ja`, `ar`, etc.
+        ostensibly represented using an ISO 639-1 language code, e.g. `en`, `ja`, `ar`, etc.
         """
         return self.__tts_language
     
