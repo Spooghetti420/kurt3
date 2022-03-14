@@ -70,29 +70,42 @@ class GlideSecsToXY(Block):
             )
 
 class GlideSecsToMenu(Block):
-    def __init__(self, secs = 1, goto: str = "_random_") -> None:
+    def __init__(self, secs = 1, goto: str = "_random_", sprite = None) -> None:
+        if sprite is None:
+            raise ValueError("Menu block requires a sprite to be passed in order to generate a unique block ID.")
+
+        id1 = sprite._project.generate_id()
+        id2 = sprite._project.generate_id()
+
         super().__init__(
+            id = id1,
             opcode = "motion_glideto",
-            # inputs = {
-            #         "SECS": InputSlotNumeric(secs),
-            #         "TO": [
-            #             1,
-            #             child._id
-            #         ]
-            #     }
+            inputs = {
+                    "SECS": InputSlotNumeric(secs),
+                    "TO": [
+                        1,
+                        id2
+                    ]
+                }
             )
+        menu = GlideToMenu(goto, id1, id2)
+        sprite.blocks.add_block(menu)
 
 class GlideToMenu(Block):
-    def __init__(self, goto: str = "_random_") -> None:
+    def __init__(self, goto: str = "_random_", id1 = None, id2 = None) -> None:
         super().__init__(
+            id = id2,
             opcode = "motion_glideto_menu",
             fields = { 
                 "TO": [
                         goto,
                         None
                     ]
-                }
-            )
+                },
+            parent = id1,
+            topLevel = False,
+            shadow = True
+        )
 
 class GlideSecsToXY(Block):
     def __init__(self, secs = 1, x = 0, y = 0) -> None:

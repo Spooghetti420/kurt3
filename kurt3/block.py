@@ -100,16 +100,13 @@ class Block(IDObject):
         """
         Replace this block's "next" block with another, deleting any blocks attached to it previously.
         """
-        if self._next is not None:
-            if type(next) is Block:
-                next.remove_next()
-                self._next = next.__id
-            elif type(next) is str:
-                # maybe check that this variable exists
-                # also need to remove "next" values from block
-                self._next = next
-        else:
-            raise KeyError("Error setting block's child block: block already has a next block.")
+        if type(next) is Block:
+            next.remove_next()
+            self._next = next.__id
+        elif type(next) is str:
+            # maybe check that this variable exists
+            # also need to remove "next" values from block
+            self._next = next
 
     def remove_next(self) -> None:
         if type(self._next) is not None:

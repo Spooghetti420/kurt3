@@ -97,7 +97,7 @@ class Target:
         return self.__name
 
     @name.setter
-    def set_name(self, value: str):
+    def name(self, value: str):
         if type(value) is str:
             self.__name = value
         else:
