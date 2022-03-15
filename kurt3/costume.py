@@ -1,5 +1,4 @@
 from __future__ import annotations
-from hashlib import md5
 import os
 
 from kurt3.asset import Asset
@@ -13,29 +12,18 @@ class CostumeManager:
     def costumes(self):
         return self.__costumes
 
-    def add(self, file_path, name: str, rotation_center = (0, 0)):
-        raise NotImplementedError("Reworking adding costumes")
-        # md5_hash = ""
-        # extension = ""
-        # if file_path in self._project._assets:
-        #     md5_hash = self._project._assets[file_path]
-        #     extension = os.path.splitext(md5_hash)[1]
-        # else:
-        #     with open(file_path, mode="rb") as f:
-        #         md5_hash = md5(f.read()).hexdigest()
-        #         extension = os.path.splitext(file_path)[1]
-
-        # self.__costumes.append(Costume.create_costume(
-        #     {
-        #         "assetId": md5_hash,
-        #         "name": name,
-        #         "md5ext": md5_hash + extension,
-        #         "dataFormat": extension[1:],
-        #         "rotationCenterX": rotation_center[0],
-        #         "rotationCenterY": rotation_center[1],
-        #         "bitmapResolution": 1
-        #     }
-        # ))
+    def _add(self, md5_hash: str, name: str, extension: str, rotation_center = (0, 0)):
+        self.__costumes.append(Costume.create_costume(
+            {
+                "assetId": md5_hash,
+                "name": name,
+                "md5ext": md5_hash + extension,
+                "dataFormat": extension[1:],
+                "rotationCenterX": rotation_center[0],
+                "rotationCenterY": rotation_center[1],
+                "bitmapResolution": 1
+            }
+        ))
 
     def output(self):
         return [c.output() for c in self.__costumes]

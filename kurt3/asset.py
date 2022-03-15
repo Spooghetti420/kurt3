@@ -1,3 +1,6 @@
+from typing import NamedTuple
+
+
 class Asset:
     def __init__(self, values: dict) -> None:
         self.__asset_id = values["assetId"]
@@ -41,3 +44,7 @@ class Asset:
             "md5ext": self.__md5_ext,
             "dataFormat": self.__data_format
         }
+
+class AssetData(NamedTuple):
+    md5: str
+    ext: str

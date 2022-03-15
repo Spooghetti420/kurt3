@@ -7,6 +7,7 @@ import traceback
 import zipfile
 import tempfile
 import json as JSON
+from kurt3.asset import AssetData
 from kurt3.extensions import ExtensionManager
 from kurt3.metadata import MetadataManager
 from kurt3.monitor import MonitorManager
@@ -40,7 +41,6 @@ class Project:
         with open(os.path.join(self.__tmp_dir_name, "project.json")) as project_json:
             self.__json = project_json.read()
 
-        # self.__json = ProjectJSON(os.path.join(self.__tmp_dir_name, "project.json"), self)
         parsed_json: dict = JSON.loads(self.__json)
         
         self.__targets = TargetManager(parsed_json["targets"])
@@ -59,14 +59,15 @@ class Project:
         return True
 
     def _add_asset(self, file_path) -> None:
-        self._check_file_path(file_path)
-        
         if file_path in self._assets:
             return
 
+        self._check_file_path(file_path)
+
         with open(file_path, mode="rb") as asset:
             md5_hash = hashlib.md5(asset.read()).hexdigest()
-            self._assets[file_path] = md5_hash + os.path.splitext(file_path)[1]
+            extension = os.path.splitext(file_path)[1]
+            self._assets[file_path] = AssetData(md5_hash, extension)
 
     def generate_id(self, l = 20) -> str:
         valid_characters = "!#$%()*+,-./0123456789:;=?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~"
@@ -134,26 +135,48 @@ class Project:
         """
         return self.__targets.get_sprite_by_name(name)
 
-    # def add_costume(self, file_path: str, name: str, target: Target):
-    #     if type(file_path) is not str:
-    #         raise TypeError(f"File output name must be a string, but {file_path} of type {type(file_path)} was received.")
+    def add_costume(self, target: Target, file_path: str, name: str):
+        if type(file_path) is not str:
+            raise TypeError(f"File output name must be a string, but {file_path} of type {type(file_path)} was received.")
         
-    #     directory_path = os.path.split(file_path)[0] 
-    #     if directory_path != "" and not os.path.exists(directory_path):
-    #         raise FileNotFoundError(f"Directory {directory_path} where the project was saved could not be found.")
+        if type(name) is not str:
+            raise TypeError(f"Costume name must be a string, but {name} of type {type(name)} was received.")
+        
+        self._check_file_path(file_path)
+        
+        if file_path not in self._assets:
+            self._add_asset(file_path)
 
-    #     target.costumes.add(file_path)
+        md5, extension = self._assets[file_path]
+        target.costumes._add(md5, name, extension)
+
+    def add_sound(self, target: Target, file_path: str, name: str):
+        if type(file_path) is not str:
+            raise TypeError(f"File output name must be a string, but {file_path} of type {type(file_path)} was received.")
+        
+        if type(name) is not str:
+            raise TypeError(f"Sound name must be a string, but {name} of type {type(name)} was received.")
+        
+        self._check_file_path(file_path)
+        
+        if file_path not in self._assets:
+            self._add_asset(file_path)
+
+        md5, extension = self._assets[file_path]
+        target.sounds._add(md5, extension, name)
         
     def save(self, file_path: str = "project.sb3"):
         """
         Output the project as a file, with the optional `file_path` attribute to specify where to save to.
         The default filename is `project.sb3`.
         """
+        if not os.path.exists(self.__tmp_dir_name):
+            raise IOError("Project file already closed; please save the project inside the with-block.")
 
         self._check_file_path(file_path)
 
-        for file, md5_name in self._assets.items():
-            shutil.copy(file, f"{os.path.join(self.__tmp_dir_name, md5_name)}")
+        for file, (md5_name, extension) in self._assets.items():
+            shutil.copy(file, f"{os.path.join(self.__tmp_dir_name, md5_name + extension)}")
 
         with open(os.path.join(self.__tmp_dir_name, "project.json"), mode="w") as project_file:
             project_file.write(JSON.dumps(self.output()))

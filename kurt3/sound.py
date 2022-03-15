@@ -14,29 +14,18 @@ class SoundManager:
         """
         return self.__sounds
 
-    def add(self, file_path, name: str):
-        raise NotImplementedError("Reworking adding sounds")
-        # md5_hash = ""
-        # extension = ""
-        # if file_path in self._project._assets:
-        #     md5_hash = self._project._assets[file_path]
-        #     extension = os.path.splitext(md5_hash)[1]
-        # else:
-        #     with open(file_path, mode="rb") as f:
-        #         md5_hash = md5(f.read()).hexdigest()
-        #         extension = os.path.splitext(file_path)[1]
-
-        # self.__sounds.append(Sound(
-        #     {
-        #         "assetId": md5_hash,
-        #         "name": name,
-        #         "md5ext": md5_hash + extension,
-        #         "dataFormat": extension[1:],
-        #         "format": "",
-        #         "rate": 0,
-        #         "sampleCount": 0
-        #     })
-        # )
+    def _add(self, md5_hash: str, extension: str, name: str):
+        self.__sounds.append(Sound(
+            {
+                "assetId": md5_hash,
+                "name": name,
+                "md5ext": md5_hash + extension,
+                "dataFormat": extension[1:],
+                "format": "",
+                "rate": 0,
+                "sampleCount": 0
+            })
+        )
 
     def output(self):
         return [s.output() for s in self.__sounds]
