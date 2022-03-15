@@ -91,7 +91,7 @@ class Project:
         
         directory_path = os.path.split(file_path)[0] 
         if directory_path != "" and not os.path.exists(directory_path):
-            raise FileNotFoundError(f"Directory {directory_path} could not be found.")
+            os.makedirs(directory_path, exist_ok=True)
 
     @property
     def targets(self):

@@ -1,3 +1,6 @@
 kurt3.egg-info
 test
 __pycache__
+examples/motion_block_test.py
+examples/desired_api.py
+examples/all_properties.py
