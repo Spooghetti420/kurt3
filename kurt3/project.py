@@ -135,12 +135,16 @@ class Project:
         """
         return self.__targets.get_sprite_by_name(name)
 
-    def add_costume(self, target: Target, file_path: str, name: str):
-        if type(file_path) is not str:
-            raise TypeError(f"File output name must be a string, but {file_path} of type {type(file_path)} was received.")
+    def _add_asset_check(self, param_name: str, oftype: type, value):
+        if type(value) is not oftype:
+            raise TypeError(f"{param_name} name must be a {str(oftype)}, but {value} of type {type(value)} was received.")
         
-        if type(name) is not str:
-            raise TypeError(f"Costume name must be a string, but {name} of type {type(name)} was received.")
+    def add_costume(self, target: Target, file_path: str, name: str):
+        self._add_asset_check("File path", str, file_path)
+        self._add_asset_check("Costume name", str, name)
+
+        if bool([c for c in target.costumes.costumes if c.name == name]):
+            raise ValueError(f"The chosen costume name ({name}) already exists on this Target. Please choose a different one.")
         
         self._check_file_path(file_path)
         
@@ -151,16 +155,16 @@ class Project:
         target.costumes._add(md5, name, extension)
 
     def add_sound(self, target: Target, file_path: str, name: str):
-        if type(file_path) is not str:
-            raise TypeError(f"File output name must be a string, but {file_path} of type {type(file_path)} was received.")
-        
-        if type(name) is not str:
-            raise TypeError(f"Sound name must be a string, but {name} of type {type(name)} was received.")
-        
+        self._add_asset_check("File path", str, file_path)
+        self._add_asset_check("Sound name", str, name)
+      
         self._check_file_path(file_path)
         
         if file_path not in self._assets:
             self._add_asset(file_path)
+        
+        if bool([s for s in target.sounds.sounds if s.name == name]):
+            raise ValueError(f"The chosen sound name ({name}) already exists on this Target. Please choose a different one.")
 
         md5, extension = self._assets[file_path]
         target.sounds._add(md5, extension, name)

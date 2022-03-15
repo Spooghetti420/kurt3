@@ -143,7 +143,7 @@ class Target:
         return self.__current_costume
     
     @current_costume.setter
-    def set_costume(self, value):
+    def current_costume(self, value):
         if type(value) is not int:
             raise TypeError(f"Costume number must be an integer, but {value} of type {type(value)} was received.")
         
@@ -185,17 +185,6 @@ class Target:
     def add_block(self, block: Block) -> Block:
         raise NotImplementedError("Refactoring adding blocks")
         return block
-
-    def add_costume(self, file_path, costume_name, rotation_center = (0, 0)):
-        # Check whether costume of this name exists already
-        if bool([c for c in self.__costumes.costumes if c.name == costume_name]):
-            raise ValueError(f"The chosen costume name ({costume_name}) already exists on this Target. Please choose a different one.")
-        self.__costumes.add(file_path, costume_name, rotation_center)
-
-    def add_sound(self, file_path, sound_name):
-        if bool([s for s in self.__sounds.sounds if s.name == sound_name]):
-            raise ValueError(f"The chosen sound name ({sound_name}) already exists on this Target. Please choose a different one.")
-        self.__sounds.add(file_path, sound_name)
 
     def output(self) -> dict:
         return {
