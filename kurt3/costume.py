@@ -7,6 +7,12 @@ from kurt3.asset import Asset
 class CostumeManager:
     def __init__(self, costume_list: list[dict]) -> None:
         self.__costumes = [Costume.create_costume(c) for c in costume_list]
+
+    def __iter__(self):
+        return iter(self.__costumes)
+
+    def __len__(self):
+        return len(self.__costumes)
     
     @property
     def costumes(self):

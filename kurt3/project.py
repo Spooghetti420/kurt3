@@ -79,10 +79,13 @@ class Project:
 
     def _get_ids(self) -> list[str]:
         ids = set()
-        for t in self.__json.targets.as_list():
+        for t in self.targets:
             for m in t.blocks._items + t.broadcasts._items + t.variables._items + t.lists._items:
                 ids.add(m._id)
         return ids
+
+    def _get_highest_layer(self) -> int:
+        return max([t.layer for t in self.targets])
 
     @staticmethod
     def _check_file_path(file_path) -> None:
@@ -168,6 +171,25 @@ class Project:
 
         md5, extension = self._assets[file_path]
         target.sounds._add(md5, extension, name)
+
+    def create_sprite(self, name: str):
+        """
+        Create and return a `Sprite` that is added to the project.
+        """
+        s = Sprite(name=name, layerOrder=self._get_highest_layer()+1)
+        self.targets._add_sprite(s)
+        return s
+
+    def _run_presave_compatibility_check(self):
+        """
+        Ensure that the project is correctly configured so as to guarantee importability
+        in Scratch.
+        """
+        for target in self.__targets:
+            # All sprites require at least one costume for the project to be valid.
+            if len(target.costumes) == 0:
+                # Add the "cat" costume to costumeless sprites
+                self.add_costume(target, "../assets/cat1.svg", "costume1")
         
     def save(self, file_path: str = "project.sb3"):
         """
@@ -178,6 +200,7 @@ class Project:
             raise IOError("Project file already closed; please save the project inside the with-block.")
 
         self._check_file_path(file_path)
+        self._run_presave_compatibility_check()
 
         for file, (md5_name, extension) in self._assets.items():
             shutil.copy(file, f"{os.path.join(self.__tmp_dir_name, md5_name + extension)}")

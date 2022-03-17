@@ -15,10 +15,10 @@ class TargetManager:
     for either the `Stage` or a `Sprite`.
     """
     def __init__(self, target_list) -> None:
-        self.__targets: list[Target] = [TargetManager.create_target(t) for t in target_list]
+        self.__targets: list[Target] = [TargetManager._create_target(t) for t in target_list]
 
     @staticmethod
-    def create_target(target_dict: dict) -> Stage | Sprite:
+    def _create_target(target_dict: dict) -> Stage | Sprite:
         """
         Creates either a `Stage` or a `Sprite` object, depending on value of the
         `isStage` attribute.
@@ -29,6 +29,9 @@ class TargetManager:
         else:
             return Sprite(**target_dict)
     
+    def _add_sprite(self, sprite):
+        self.__targets.append(sprite)
+
     def get_stage(self):
         try:
             return [t for t in self.__targets if t.is_stage][0]
@@ -41,9 +44,12 @@ class TargetManager:
         except:
             raise NameError(f"The sprite with name {name} does not exist.")
 
-    def as_list(self):
-        return self.__targets
-    
+    def __iter__(self):
+        return iter(self.__targets)
+
+    def __len__(self):
+        return len(self.__targets)
+
     def output(self):
         return [t.output() for t in self.__targets]
 
