@@ -7,8 +7,9 @@ class BlockManager(IDObjectManager):
     def __init__(self, block_dict) -> None:
         super().__init__(BlockManager.create_block, block_dict)
 
-    def add_block(self, block: Block):
-        self._items.append(block)
+    def _add_block(self, *blocks: list[Block]):
+        for block in blocks:
+            self._items.append(block)
 
     @staticmethod
     def create_block(id, block_dict):

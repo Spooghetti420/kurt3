@@ -1,212 +1,206 @@
+from typing import Tuple
 from kurt3.block import Block
 from kurt3.blocks.input_slot import InputSlotNumeric
-from kurt3.target import Target
+from kurt3.project import Project
 
-class MoveSteps(Block):
-    def __init__(self, steps = 10) -> None:
-        super().__init__(
-            opcode = "motion_movesteps",
-            inputs = {
+STYLES = {
+    "LEFT_RIGHT": "left-right",
+    "DONT_ROTATE": "don't rotate",
+    "ALL_AROUND": "all around"
+}
+
+def MoveSteps(project: Project, steps = 10) -> Block:
+    return Block (
+        id = project.generate_id(),
+        opcode = "motion_movesteps",
+        inputs = {
             "STEPS": InputSlotNumeric(steps)
-            }
-        )
+        }
+    )
+
+def TurnRight(project: Project, degrees = 15) -> Block:
+    return Block (
+        id = project.generate_id(),
+        opcode = "motion_turnright",
+        inputs = {
+            "DEGREES": InputSlotNumeric(degrees)
+        }
+    )
 
 
-class TurnRight(Block):
-    def __init__(self, degrees = 15) -> None:
-        super().__init__(
-            opcode = "motion_turnright",
-            inputs = {
-                "DEGREES": InputSlotNumeric(degrees)
-            }
-        )
+def TurnLeft(project: Project, degrees = 15) -> Block:
+    return Block (
+        id = project.generate_id(),
+        opcode = "motion_turnleft",
+        inputs = {
+            "DEGREES": InputSlotNumeric(degrees)
+        }
+    )
 
+def GoToMenu(project: Project, goto: str = "_random_") -> Block:
+    """
+    A go-to block which accepts a sprite name to go to,
+    or "_random_" or "_mouse_" to access a random position
+    or the mouse position.
+    """
+    return Block (
+        id = project.generate_id(),
+        opcode = "motion_goto_menu",
+        fields = {
+            "TO": [
+                "_mouse_",
+                None
+            ]
+        }
+    )
 
-class TurnLeft(Block):
-    def __init__(self, degrees = 15) -> None:
-        super().__init__(
-            opcode = "motion_turnleft",
-            inputs = {
-                "DEGREES": InputSlotNumeric(degrees)
-            }
-        )
+def GoToXY(project: Project, x = 0, y = 0) -> Block:
+    return Block (
+        id = project.generate_id(),
+        opcode = "motion_gotoxy",
+        inputs = {
+            "X": InputSlotNumeric(x),
+            "Y": InputSlotNumeric(y)
+        }
+    )
 
-class GoToMenu(Block):
-    def __init__(self, goto: str = "_random_") -> None:
-        """
-        A go-to block which accepts a sprite name to go to,
-        or "_random_" or "_mouse_" to access a random position
-        or the mouse position.
-        """
-        super().__init__(
-            opcode = "motion_goto_menu",
-            fields = {
-                "TO": [
-                    "_mouse_",
-                    None
-                ]
-            }
-        )
-
-class GoToXY(Block):
-    def __init__(self, x = 0, y = 0) -> None:
-        super().__init__(
-            opcode = "motion_gotoxy",
-            inputs = {
+def GlideSecsToXY(project: Project, secs = 1, x = 0, y = 0) -> Block:
+    return Block (
+        id = project.generate_id(),
+        opcode = "motion_glidesecstoxy",
+        inputs = {
+                "SECS": InputSlotNumeric(secs),
                 "X": InputSlotNumeric(x),
                 "Y": InputSlotNumeric(y)
             }
         )
 
-class GlideSecsToXY(Block):
-    def __init__(self, secs = 1, x = 0, y = 0) -> None:
-        super().__init__(
-            opcode = "motion_glidesecstoxy",
-            inputs = {
-                    "SECS": InputSlotNumeric(secs),
-                    "X": InputSlotNumeric(x),
-                    "Y": InputSlotNumeric(y)
-                }
-            )
+def GlideSecsToMenu(project: Project, secs = 1, goto: str = "_random_", sprite = None) -> Tuple[Block, Block]:
+    id1 = project.generate_id()
+    id2 = project.generate_id()
 
-class GlideSecsToMenu(Block):
-    def __init__(self, secs = 1, goto: str = "_random_", sprite = None) -> None:
-        if sprite is None:
-            raise ValueError("Menu block requires a sprite to be passed in order to generate a unique block ID.")
-
-        id1 = sprite._project.generate_id()
-        id2 = sprite._project.generate_id()
-
-        super().__init__(
-            id = id1,
-            opcode = "motion_glideto",
-            inputs = {
-                    "SECS": InputSlotNumeric(secs),
-                    "TO": [
-                        1,
-                        id2
-                    ]
-                }
-            )
-        menu = GlideToMenu(goto, id1, id2)
-        sprite.blocks.add_block(menu)
-
-class GlideToMenu(Block):
-    def __init__(self, goto: str = "_random_", id1 = None, id2 = None) -> None:
-        super().__init__(
-            id = id2,
-            opcode = "motion_glideto_menu",
-            fields = { 
+    glide_to = Block (
+        id = id1,
+        opcode = "motion_glideto",
+        inputs = {
+                "SECS": InputSlotNumeric(secs),
                 "TO": [
-                        goto,
-                        None
-                    ]
-                },
-            parent = id1,
-            topLevel = False,
-            shadow = True
-        )
-
-class GlideSecsToXY(Block):
-    def __init__(self, secs = 1, x = 0, y = 0) -> None:
-        super().__init__(
-            opcode = "motion_glidesecstoxy",
-            inputs = {
-                    "SECS": InputSlotNumeric(secs),
-                    "X": InputSlotNumeric(x),
-                    "Y": InputSlotNumeric(y)
-                }
-            )
-
-class PointInDirection(Block):
-    def __init__(self, degrees = 90) -> None:
-        super().__init__(
-            opcode = "motion_pointindirection",
-            inputs = {
-                "DIRECTION": InputSlotNumeric(degrees)
-            }
-
-        )
-        
-class ChangeXBy(Block):
-    def __init__(self, dx = 10) -> None:
-        super().__init__(
-            opcode = "motion_changexby",
-            inputs = {
-                "DX": InputSlotNumeric(dx)
+                    1,
+                    id2
+                ]
             }
         )
+ 
+    glide_to_menu = GlideToMenu(project, goto, id1, id2)
+    return (glide_to, glide_to_menu)
 
-class ChangeYBy(Block):
-    def __init__(self, dy = 10) -> None:
-        super().__init__(
-            opcode = "motion_changeyby",
-            inputs = {
-                "DY": InputSlotNumeric(dy)
-            }
-        )
+def GlideToMenu(project: Project, goto: str, id1: str, id2: str) -> Block:
+    return Block (
+        id = id2,
+        opcode = "motion_glideto_menu",
+        fields = { 
+            "TO": [
+                    goto,
+                    None
+                ]
+            },
+        parent = id1,
+        topLevel = False,
+        shadow = True
+    )
 
-class SetX(Block):
-    def __init__(self, x = 0) -> None:
-        super().__init__(
-            opcode = "motion_setx",
-            inputs = {
-                "X": InputSlotNumeric(x)
-            }
-        )
-        
-
-class SetY(Block):
-    def __init__(self, y = 0) -> None:
-        super().__init__(
-            opcode = "motion_sety",
-            inputs = {
+def GlideSecsToXY(project: Project, secs = 1, x = 0, y = 0) -> Block:
+    return Block (
+        id = project.generate_id(),
+        opcode = "motion_glidesecstoxy",
+        inputs = {
+                "SECS": InputSlotNumeric(secs),
+                "X": InputSlotNumeric(x),
                 "Y": InputSlotNumeric(y)
             }
         )
 
-class IfOnEdgeBounce(Block):
-    def __init__(self) -> None:
-        super().__init__(
-            opcode = "motion_ifonedgebounce"
-        )
+def PointInDirection(project: Project, degrees = 90) -> Block:
+    return Block (
+        id = project.generate_id(),
+        opcode = "motion_pointindirection",
+        inputs = {
+            "DIRECTION": InputSlotNumeric(degrees)
+        }
 
-class SetRotationStyle(Block):
-    STYLES = {
-        "left-right",
-        "don't rotate",
-        "all around"
-    }
-    def __init__(self, style: str = "all around") -> None:
-        # if style not in SetRotationStyle.STYLES:
-        #     raise ValueError(f"Rotation style must be one of: {', '.join(SetRotationStyle.STYLES)}, but `{style}` was received.")
-        super().__init__(
-            opcode = "motion_setrotationstyle",
-            fields = {
-                "STYLE": [
-                    style,
-                    None
-                ]
-            }
-        )
+    )
+        
+def ChangeXBy(project: Project, dx = 10) -> Block:
+    return Block (
+        id = project.generate_id(),
+        opcode = "motion_changexby",
+        inputs = {
+            "DX": InputSlotNumeric(dx)
+        }
+    )
 
-class XPosition(Block):
-    def __init__(self) -> None:
-        super().__init__(
-            opcode = "motion_xposition",
-        )
+def ChangeYBy(project: Project, dy = 10) -> Block:
+    return Block (
+        id = project.generate_id(),
+        opcode = "motion_changeyby",
+        inputs = {
+            "DY": InputSlotNumeric(dy)
+        }
+    )
 
-class YPosition(Block):
-    def __init__(self) -> None:
-        super().__init__(
-            opcode = "motion_yposition",
-        )
+def SetX(project: Project, x = 0) -> Block:
+    return Block (
+        id = project.generate_id(),
+        opcode = "motion_setx",
+        inputs = {
+            "X": InputSlotNumeric(x)
+        }
+    )
 
-class Direction(Block):
-    def __init__(self) -> None:
-        super().__init__(
-            opcode = "motion_direction",
-        )
+def SetY(project: Project, y = 0) -> Block:
+    return Block (
+        id = project.generate_id(),
+        opcode = "motion_sety",
+        inputs = {
+            "Y": InputSlotNumeric(y)
+        }
+    )
 
+def IfOnEdgeBounce(project: Project) -> Block:
+    return Block (
+        id = project.generate_id(),
+        opcode = "motion_ifonedgebounce"
+    )
 
+def SetRotationStyle(project: Project, style: str = "all around") -> Block:
+    if style not in STYLES.values():
+        raise ValueError(f"Rotation style must be one of: {', '.join(STYLES)}, but `{style}` was received.")
 
+    return Block (
+        id = project.generate_id(),
+        opcode = "motion_setrotationstyle",
+        fields = {
+            "STYLE": [
+                style,
+                None
+            ]
+        }
+    )
+
+def XPosition(project: Project):
+    return Block (
+        id = project.generate_id(),
+        opcode = "motion_xposition",
+    )
+
+def YPosition(project: Project):
+    return Block (
+        id = project.generate_id(),
+        opcode = "motion_yposition",
+    )
+
+def Direction(project: Project):
+    return Block (
+        id = project.generate_id(),
+        opcode = "motion_direction",
+    )

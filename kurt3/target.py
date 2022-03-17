@@ -188,9 +188,19 @@ class Target:
         """
         return self.__volume
 
-    def add_block(self, block: Block) -> Block:
-        raise NotImplementedError("Refactoring adding blocks")
-        return block
+    def add_block(self, blocks: Block | list[Block]) -> Block | list[Block]:
+        try:
+            blocks = list(blocks)
+        except TypeError:
+            blocks = [blocks]
+
+        self.__blocks._add_block(*blocks)
+        try:
+            len(blocks)
+        except:
+            return blocks
+        else:
+            return blocks[0]
 
     def output(self) -> dict:
         return {
