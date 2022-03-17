@@ -9,7 +9,7 @@ def main():
         sprite.add_block(TurnRight(project, 90))
         sprite.add_block(TurnLeft(project, 90))
         sprite.add_block(GoToXY(project, 10, 10))
-        sprite.add_block(GlideSecsToMenu(project, 1, "_mouse_", sprite))
+        sprite.add_block(GlideSecsToMenu(project, 1, "_mouse_"))
         sprite.add_block(GlideSecsToXY(project, 10, 50, 50))
         sprite.add_block(PointInDirection(project, 90))
         sprite.add_block(ChangeXBy(project, 10))

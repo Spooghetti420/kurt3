@@ -1,6 +1,6 @@
 from typing import Tuple
 from kurt3.block import Block
-from kurt3.blocks.input_slot import InputSlotNumeric
+from kurt3.blocks.input_slot import InputSlotFloat
 from kurt3.project import Project
 
 STYLES = {
@@ -14,7 +14,7 @@ def MoveSteps(project: Project, steps = 10) -> Block:
         id = project.generate_id(),
         opcode = "motion_movesteps",
         inputs = {
-            "STEPS": InputSlotNumeric(steps)
+            "STEPS": InputSlotFloat(steps)
         }
     )
 
@@ -23,7 +23,7 @@ def TurnRight(project: Project, degrees = 15) -> Block:
         id = project.generate_id(),
         opcode = "motion_turnright",
         inputs = {
-            "DEGREES": InputSlotNumeric(degrees)
+            "DEGREES": InputSlotFloat(degrees)
         }
     )
 
@@ -33,7 +33,7 @@ def TurnLeft(project: Project, degrees = 15) -> Block:
         id = project.generate_id(),
         opcode = "motion_turnleft",
         inputs = {
-            "DEGREES": InputSlotNumeric(degrees)
+            "DEGREES": InputSlotFloat(degrees)
         }
     )
 
@@ -59,8 +59,8 @@ def GoToXY(project: Project, x = 0, y = 0) -> Block:
         id = project.generate_id(),
         opcode = "motion_gotoxy",
         inputs = {
-            "X": InputSlotNumeric(x),
-            "Y": InputSlotNumeric(y)
+            "X": InputSlotFloat(x),
+            "Y": InputSlotFloat(y)
         }
     )
 
@@ -69,13 +69,13 @@ def GlideSecsToXY(project: Project, secs = 1, x = 0, y = 0) -> Block:
         id = project.generate_id(),
         opcode = "motion_glidesecstoxy",
         inputs = {
-                "SECS": InputSlotNumeric(secs),
-                "X": InputSlotNumeric(x),
-                "Y": InputSlotNumeric(y)
+                "SECS": InputSlotFloat(secs),
+                "X": InputSlotFloat(x),
+                "Y": InputSlotFloat(y)
             }
         )
 
-def GlideSecsToMenu(project: Project, secs = 1, goto: str = "_random_", sprite = None) -> Tuple[Block, Block]:
+def GlideSecsToMenu(project: Project, secs = 1, goto: str = "_random_") -> Tuple[Block, Block]:
     id1 = project.generate_id()
     id2 = project.generate_id()
 
@@ -83,7 +83,7 @@ def GlideSecsToMenu(project: Project, secs = 1, goto: str = "_random_", sprite =
         id = id1,
         opcode = "motion_glideto",
         inputs = {
-                "SECS": InputSlotNumeric(secs),
+                "SECS": InputSlotFloat(secs),
                 "TO": [
                     1,
                     id2
@@ -91,10 +91,10 @@ def GlideSecsToMenu(project: Project, secs = 1, goto: str = "_random_", sprite =
             }
         )
  
-    glide_to_menu = GlideToMenu(project, goto, id1, id2)
+    glide_to_menu = GlideToMenu(goto, id1, id2)
     return (glide_to, glide_to_menu)
 
-def GlideToMenu(project: Project, goto: str, id1: str, id2: str) -> Block:
+def GlideToMenu(goto: str, id1: str, id2: str) -> Block:
     return Block (
         id = id2,
         opcode = "motion_glideto_menu",
@@ -114,9 +114,9 @@ def GlideSecsToXY(project: Project, secs = 1, x = 0, y = 0) -> Block:
         id = project.generate_id(),
         opcode = "motion_glidesecstoxy",
         inputs = {
-                "SECS": InputSlotNumeric(secs),
-                "X": InputSlotNumeric(x),
-                "Y": InputSlotNumeric(y)
+                "SECS": InputSlotFloat(secs),
+                "X": InputSlotFloat(x),
+                "Y": InputSlotFloat(y)
             }
         )
 
@@ -125,7 +125,7 @@ def PointInDirection(project: Project, degrees = 90) -> Block:
         id = project.generate_id(),
         opcode = "motion_pointindirection",
         inputs = {
-            "DIRECTION": InputSlotNumeric(degrees)
+            "DIRECTION": InputSlotFloat(degrees)
         }
 
     )
@@ -135,7 +135,7 @@ def ChangeXBy(project: Project, dx = 10) -> Block:
         id = project.generate_id(),
         opcode = "motion_changexby",
         inputs = {
-            "DX": InputSlotNumeric(dx)
+            "DX": InputSlotFloat(dx)
         }
     )
 
@@ -144,7 +144,7 @@ def ChangeYBy(project: Project, dy = 10) -> Block:
         id = project.generate_id(),
         opcode = "motion_changeyby",
         inputs = {
-            "DY": InputSlotNumeric(dy)
+            "DY": InputSlotFloat(dy)
         }
     )
 
@@ -153,7 +153,7 @@ def SetX(project: Project, x = 0) -> Block:
         id = project.generate_id(),
         opcode = "motion_setx",
         inputs = {
-            "X": InputSlotNumeric(x)
+            "X": InputSlotFloat(x)
         }
     )
 
@@ -162,7 +162,7 @@ def SetY(project: Project, y = 0) -> Block:
         id = project.generate_id(),
         opcode = "motion_sety",
         inputs = {
-            "Y": InputSlotNumeric(y)
+            "Y": InputSlotFloat(y)
         }
     )
 

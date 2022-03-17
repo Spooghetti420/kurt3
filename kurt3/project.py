@@ -58,6 +58,10 @@ class Project:
         shutil.rmtree(self.__tmp_dir_name)
         return True
 
+    @staticmethod
+    def new_project() -> Project:
+        return Project("../assets/Blank Project.sb3")
+
     def _add_asset(self, file_path) -> None:
         if file_path in self._assets:
             return
